@@ -1,0 +1,22 @@
+---
+title: "SQL Airline Simulation Data"
+author: "Dominic Adducci"
+output: html_document
+---
+
+```{r} 
+
+library(tidyverse)
+
+```
+
+```{r}
+
+# Data frames which may serve as inputs. 
+
+# 
+
+
+```
+
+Function inputs: Number of flights, Directmarket options, 
