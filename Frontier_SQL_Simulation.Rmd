@@ -14,9 +14,141 @@ library(tidyverse)
 
 # Data frames which may serve as inputs. 
 
-# 
+# CXR/Airlines
+airlines <- data.frame(
+  Airline = c("Allegient Air","Alaska Airlines",
+          "American Airlines","United Airlines","Frontier","Delta"),
+  CXR = c("G4","AS","AA","UA","F9","DL")
+)
+
+# Markets 
+markets <- data.frame(
+  City = c("Denver","Chicago","Dallas/Fort Worth","Los Angeles","New York",
+           "New York","San Francisco","Washington D.C.","Washington D.C."),
+  Code = c("DEN","ORD","DFW","LAX","JFK","LGA","SFO","IAD","DCA"),
+  Tax = c(5.15,10.25,8.25,9.5,4.5,4.5,8.625,6.00,6.00)
+)
+
+# For simplicity will select unique airports for destinations
+destinations <- data.frame(
+  City = c("Birmingham","Anchorage","Flagstaff",
+           "Texarkana","Bakersfield","Hartford"),
+  Code = c("BHM","MRI","FLG","TXK","BFL","")
+)
+
+size_n = 100
+
+# This code works for making city samples. 
+test_sample <- data.frame(sample(markets[,"City"],size = size_n,replace = T))
+colnames(test_sample) <- "Origin"
+
+# Adding in the tax rate information
+test_sample$Tax_Rate <- NA
+for(i in 1:size_n){
+  current_city <- test_sample[i,"Origin"]
+  test_sample[i,"Tax_Rate"] <- unique(markets[markets$City == current_city,"Tax"])
+}
+
+# Adding in airline information
+test_sample$Airline <- sample(airlines[,"Airline"],size = size_n, replace = T)
+test_sample$CXR <- NA
+for(i in 1:size_n){
+  current_airline <- test_sample[i,"Airline"]
+  test_sample[i,"CXR"] <- airlines[airlines$Airline == current_airline,"CXR"]
+}
 
 
 ```
 
+
+```{r}
+
+# Testing adding in different columns
+test_sample2 <- test_sample %>%
+  mutate(Destination = sample(destinations[,"City"],size = size_n,replace=T))
+
+# Adding in direct market information, base cost, tax, total cost, and flight date. 
+test_sample3 <- test_sample2 %>%
+  mutate(DirectMarket = toupper(paste(substr(Origin,start=1,stop=3),
+                              substr(Destination,start=1,stop=3),sep="")),
+         Base = round(runif(size_n,100,500),2),
+         Tax = round((Base * Tax_Rate/100),2),
+         Total = Base + Tax,
+         BookingDate = sample(seq(as.Date('2021/12/01'),as.Date('2021/12/31'),
+                                  by="day"),size_n,replace = TRUE),
+         DepartureDate = sample(seq(as.Date('2022/01/01'),as.Date('2022/02/01'),
+                                    by="day"),size_n,replace = TRUE),
+         BookingID = sample(seq(from = 50000,to = 50500,by = 1),replace = F,
+                            size = size_n))
+
+# Adding in Organization and organizational code information
+organization_data <- data.frame(OrganizationCode = c(33571473,33748470,05576771,
+                                                     43663594,03513473,05801806,
+                                                     07665545,29541993,39621046),
+                                Organization = c("#1 TRAVEL TOO INC","@TABIT","1 STOP TRAVEL",
+                                                 "10 CAT TRAVEL","10 TRAVEL","123 TRAVEL INC",
+                                                 "1776 TRAVEL","1-800-REGISTRY LLC","1-888-TRAVELOCITY"))
+
+test_sample3$Organization <- sample(x = organization_data$Organization,
+                                    size = size_n,replace = TRUE)
+
+test_sample3$OrganizationCode <- NA
+for(i in 1:size_n){
+  current_organization <- test_sample3[i,"Organization"]
+  test_sample3[i,"OrganizationCode"] <- organization_data[organization_data$Organization == current_organization,"OrganizationCode"]
+}
+
+
+# Adding in channel type information
+test_sample3$ChannelType <- sample(c(1,2,3),size = size_n,replace = T)
+
+```
+
+```{r}
+
+# Selecting out different data frame 
+
+# Selecting out booking information
+Booking <- test_sample3 %>% select(BookingID,BookingDate,
+                                   ChannelType,OrganizationCode)
+colnames(Booking) <- c("BookingID","BookingDate","ChannelType","SourceOrganizationCode")
+
+# Selecting out organization information
+Organization <- test_sample3 %>% select(OrganizationCode,Organization)
+colnames(Organization) <- c("OrganizationCode","OrganizationName")
+
+# Selecting out Competitor data 
+CompetitorData <- test_sample3 %>% select(DirectMarket,Airline,CXR,
+                                          DepartureDate,Base,Tax,Total)
+
+
+```
+
+```{r}
+
+# Exporting the simulated data frames as csv files. 
+write.csv(Booking,"C:/Users/domin/OneDrive/Career/Associate Data Scientist Frontier/BookingSim.csv",
+          row.names = FALSE)
+
+write.csv(Organization,"C:/Users/domin/OneDrive/Career/Associate Data Scientist Frontier/OrganizationSim.csv",row.names = FALSE)
+
+write.csv(CompetitorData,"C:/Users/domin/OneDrive/Career/Associate Data Scientist Frontier/CompetitorDataSim.csv",row.names = FALSE)
+
+```
+
+
+
+
+
 Function inputs: Number of flights, Directmarket options, 
+
+
+
+
+
+
+
+
+
+
+
